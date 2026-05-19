@@ -6,7 +6,7 @@ st.title("Édition du catalogue")
 
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-spreadsheet_link = "https://docs.google.com/spreadsheets/d/10XWqZyB0ADl5Fxu-3H6BGFd2Bgualee9A_0ZAo2nE5c/edit?gid=0#gid=0"
+spreadsheet_link = "https://docs.google.com/spreadsheets/d/10XWqZyB0ADl5Fxu-3H6BGFd2Bgualee9A_0ZAo2nE5c"
 
 
 # Lire les données
