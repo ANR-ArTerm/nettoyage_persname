@@ -25,6 +25,7 @@ def render_entry_display(idx, row):
         with c_main:
             if row["name_alias"]:
                 st.markdown(f"Surnom : **{row['name_alias']}**")
+            
             if row['surname']:
                 st.markdown(f"Nom de famille : **{row['surname']}**")
             else:

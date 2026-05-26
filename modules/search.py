@@ -55,7 +55,13 @@ def search_display(connection, spreadsheet):
 
     with st.expander("⚙️ Filtres avancés"):
 
-        surname_absent = st.checkbox("Afficher seulement les notices sans surname")
+        empty_column = st.selectbox(
+            "Afficher seulement les notices où cette colonne est vide",
+            SEARCH_COLUMNS,
+            placeholder="choix du filtre",
+            index=None
+        )
+
 
         validation_filter = st.selectbox(
             "Filtrer par validation",
@@ -81,9 +87,9 @@ def search_display(connection, spreadsheet):
         filtered_df = filtered_df[mask]
 
     # Surname absent
-    if surname_absent:
+    if empty_column:
         filtered_df = filtered_df[
-            filtered_df["surname"].fillna("").str.strip() == ""
+            filtered_df[empty_column].fillna("").astype(str).str.strip() == ""
         ]
 
     # Validation
