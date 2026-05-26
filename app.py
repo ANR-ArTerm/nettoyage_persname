@@ -4,6 +4,7 @@ import pandas as pd
 from modules.data_loader import load_data, load_ref_lists
 from modules.entry_display import render_entry_display
 from modules.entry_editor import render_entry_editor
+from modules.import_xml_places import render_import_xml_places_page
 from modules.pagination import paginate_dataframe, render_pagination
 from modules.edit_list import render_ref_editor
 from modules.search import search_display
@@ -14,6 +15,7 @@ SPREADSHEET = "https://docs.google.com/spreadsheets/d/10XWqZyB0ADl5Fxu-3H6BGFd2B
 REF_SHEETS = {
     "Rôles": "REF_roles",
     "Types de personnes": "REF_types",
+    "PlaceName": "REF_placeName"
 }
 
 conn = st.connection("gsheets", type=GSheetsConnection)
@@ -29,7 +31,7 @@ if "last_search" not in st.session_state:
     st.session_state.last_search = ""
 
 # --- Navigation ---
-page = st.sidebar.radio("Navigation", ["📋 Catalogue", "📝 Listes de référence"])
+page = st.sidebar.radio("Navigation", ["📋 Catalogue", "📝 Listes de référence", "Mis à jour des placename"])
 
 st.sidebar.divider()
 
@@ -51,3 +53,6 @@ elif page == "📝 Listes de référence":
 
     st.title("📝 Listes de référence")
     render_ref_editor(conn, SPREADSHEET, REF_SHEETS)
+
+elif page == "Mis à jour des placename":
+    render_import_xml_places_page()
