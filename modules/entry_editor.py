@@ -3,38 +3,51 @@ from modules.data_loader import load_ref_lists
 
 def render_entry_editor(idx, row, conn, spreadsheet):
     with st.container():
-        st.subheader(f"✏️ Édition — {row['surname'] or row['xml:id']}")
-
+        st.subheader(f"✏️ Édition — {row['xml:id']}")
+        st.markdown("##### Informations principales")
         xml_id = st.text_input("xml:id", value=row["xml:id"], key=f"xml_{idx}")
         wikidata = st.text_input("Wikidata", value=row["wikidata"], key=f"wd_{idx}")
-        
-        c1, c2 = st.columns(2)
 
-        with c1:
+        # TYPES
+        types_list = st.session_state.ref_lists["types"]
+        # Le CSV stocke plusieurs valeurs séparées par une virgule, ex: "prêtre,évêque"
+        current_types = [t.strip() for t in str(row["type"]).split(",") if t.strip() in types_list]
+
+        type_personne = st.multiselect(
+            "Type",
+            options=types_list,
+            default=current_types,
+            key=f"type_{idx}"
+        )
+
+        st.markdown("##### Nom")
+        name_alias = st.text_input("Surnom ou nom d'usage", value=row["name_alias"], key=f"name_alias_{idx}")
+
+
+        c_name_1, c_name_2 = st.columns(2)
+
+
+        with c_name_1:
             surname = st.text_input("Nom complet ou nom de famille", value=row["surname"], key=f"surname_{idx}")
+        with c_name_2:
+            forename = st.text_input("Prénom", value=row["forename"], key=f"forname_{idx}")
+
+        c_date_1, c_date_2 = st.columns(2)
+        
+        with c_date_1:
             birth_date = st.text_input("Date naissance", value=row["birth_date"], key=f"bd_{idx}")
             death_date = st.text_input("Date décès", value=row["death_date"], key=f"dd_{idx}")
-            role_list = [""] + st.session_state.ref_lists["roles"]
-            role = st.selectbox(
+
+        with c_date_2:
+            birth_place = st.text_input("Lieu naissance", value=row["birth_place"], key=f"bp_{idx}")
+            death_place = st.text_input("Lieu décès", value=row["death_place"], key=f"dp_{idx}")
+
+        role_list = [""] + st.session_state.ref_lists["roles"]
+        role = st.selectbox(
                 "Rôle",
                 options=role_list,
                 index=role_list.index(row["role"]) if row["role"] in role_list else 0,
                 key=f"role_{idx}"
-            )
-
-        with c2:
-            forename = st.text_input("Prénom", value=row["forename"], key=f"forname_{idx}")
-            birth_place = st.text_input("Lieu naissance", value=row["birth_place"], key=f"bp_{idx}")
-            death_place = st.text_input("Lieu décès", value=row["death_place"], key=f"dp_{idx}")
-
-            types_list = [""] + st.session_state.ref_lists["types"]
-            
-
-            type_personne = st.selectbox(
-                "Type",
-                options=types_list,
-                index=types_list.index(row["type"]) if row["type"] in types_list else 0,
-                key=f"type_{idx}"
             )
 
         commentaire = st.text_area(
@@ -68,8 +81,8 @@ def render_entry_editor(idx, row, conn, spreadsheet):
             if st.button("💾 Sauvegarder", key=f"save_{idx}", use_container_width=True):
                 with st.spinner("Sauvegarde en cours"):
                     st.session_state.df.loc[idx] = [
-                        xml_id, wikidata, surname, forename, birth_date, birth_place,
-                        death_date, death_place, type_personne, role, commentaire, verif
+                        xml_id, wikidata, name_alias, surname, forename, birth_date, birth_place,
+                        death_date, death_place, ",".join(type_personne), role, commentaire, verif
                     ]
                     conn.update(spreadsheet=spreadsheet, data=st.session_state.df)
                     st.session_state.editing = None

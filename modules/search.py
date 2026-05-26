@@ -3,9 +3,10 @@ from modules.data_loader import load_data
 from modules.entry_display import render_entry_display
 from modules.entry_editor import render_entry_editor
 from modules.pagination import paginate_dataframe, render_pagination
-
+from modules.bulk_actions import init_bulk_selection, render_bulk_actions_top, render_entry_checkbox
 
 def search_display(connection, spreadsheet):
+    init_bulk_selection()          # 1. en tout début de fonctiondef search_display(connection, spreadsheet):
     df = st.session_state.df
 
     st.title("📋 Catalogue des personnes")
@@ -48,12 +49,6 @@ def search_display(connection, spreadsheet):
         "validation"
     ]
 
-    if search:
-        mask = df.apply(lambda row: row.str.contains(search, case=False, na=False).any(), axis=1)
-        filtered_df = df[mask]
-    else:
-        filtered_df = df
-
     # -------------------------
     # FILTRES AVANCÉS
     # -------------------------
@@ -79,30 +74,28 @@ def search_display(connection, spreadsheet):
 
     # Recherche texte
     if search and selected_columns:
-
         mask = filtered_df[selected_columns].fillna("").apply(
             lambda row: row.astype(str).str.contains(search, case=False, na=False).any(),
             axis=1
         )
-
         filtered_df = filtered_df[mask]
 
-    # surname absent
+    # Surname absent
     if surname_absent:
-
         filtered_df = filtered_df[
             filtered_df["surname"].fillna("").str.strip() == ""
         ]
 
-    # validation
+    # Validation
     if validation_filter != "Toutes":
-
         filtered_df = filtered_df[
-            filtered_df["validation"].astype(str) == validation_filter
+            filtered_df["validation"].fillna(0).astype(int).astype(str) == str(validation_filter)
         ]
 
     st.write(f"**{len(filtered_df)}** entrée(s)")
     st.divider()
+
+    render_bulk_actions_top(connection, spreadsheet)  # ← en haut, instantané
 
     page_df, total_entries, total_pages, start, end = paginate_dataframe(filtered_df)
     render_pagination(total_entries, total_pages, start, end, "top")
@@ -112,6 +105,10 @@ def search_display(connection, spreadsheet):
         if st.session_state.editing == idx:
             render_entry_editor(idx, row, connection, spreadsheet)
         else:
-            render_entry_display(idx, row)
+            col_check, col_entry = st.columns([0.5, 11.5])
+            with col_check:
+                render_entry_checkbox(idx)
+            with col_entry:
+                render_entry_display(idx, row)
 
     render_pagination(total_entries, total_pages, start, end, "bottom")

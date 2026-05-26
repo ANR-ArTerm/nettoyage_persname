@@ -23,12 +23,14 @@ def render_entry_display(idx, row):
         c_main, c_dates, c_meta, c_btn = st.columns([3, 2, 2, 1])
 
         with c_main:
+            if row["name_alias"]:
+                st.markdown(f"Surnom : **{row['name_alias']}**")
             if row['surname']:
-                st.markdown(f"Nom complet : **{row['surname']}**")
+                st.markdown(f"Nom de famille : **{row['surname']}**")
             else:
                 st.error("Sans nom")
             if row['forename']:
-                st.markdown(f"Nom complet : **{row['forename']}**")
+                st.markdown(f"Prénom : **{row['forename']}**")
 
         with c_dates:
             if row["birth_date"] or row["birth_place"]:
