@@ -26,11 +26,80 @@ def search_display(connection, spreadsheet):
             st.session_state.editing = None
             st.rerun()
 
+    VERIF_LIST = {
+        "0": "🔴 Notice non consultée",
+        "1": "👤 Nom vérifié",
+        "2": "✏️ Notice à revoir",
+        "3": "✅ Notice terminée"
+    }
+
+    SEARCH_COLUMNS = [
+        "xml:id",
+        "wikidata",
+        "surname",
+        "forename",
+        "birth_date",
+        "birth_place",
+        "death_date",
+        "death_place",
+        "type",
+        "role",
+        "commentaire",
+        "validation"
+    ]
+
     if search:
         mask = df.apply(lambda row: row.str.contains(search, case=False, na=False).any(), axis=1)
         filtered_df = df[mask]
     else:
         filtered_df = df
+
+    # -------------------------
+    # FILTRES AVANCÉS
+    # -------------------------
+
+    with st.expander("⚙️ Filtres avancés"):
+
+        surname_absent = st.checkbox("Afficher seulement les notices sans surname")
+
+        validation_filter = st.selectbox(
+            "Filtrer par validation",
+            options=["Toutes"] + list(VERIF_LIST.keys()),
+            format_func=lambda x: "Toutes" if x == "Toutes" else VERIF_LIST[x]
+        )
+
+        selected_columns = st.multiselect(
+            "Colonnes de recherche",
+            SEARCH_COLUMNS,
+            default=SEARCH_COLUMNS
+        )
+
+    # Base
+    filtered_df = df.copy()
+
+    # Recherche texte
+    if search and selected_columns:
+
+        mask = filtered_df[selected_columns].fillna("").apply(
+            lambda row: row.astype(str).str.contains(search, case=False, na=False).any(),
+            axis=1
+        )
+
+        filtered_df = filtered_df[mask]
+
+    # surname absent
+    if surname_absent:
+
+        filtered_df = filtered_df[
+            filtered_df["surname"].fillna("").str.strip() == ""
+        ]
+
+    # validation
+    if validation_filter != "Toutes":
+
+        filtered_df = filtered_df[
+            filtered_df["validation"].astype(str) == validation_filter
+        ]
 
     st.write(f"**{len(filtered_df)}** entrée(s)")
     st.divider()
