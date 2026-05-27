@@ -5,7 +5,7 @@ def render_entry_display(idx, row):
     with st.container(border=True):
         c_title, c_status = st.columns([2,1])
         with c_title:
-            st.markdown(f"#### XML:ID : **{row['xml:id']}**")
+            st.markdown(f"#### XML:ID : **{row['xml:id']}** (compte : {row['compte']})")
 
         with c_status:
             validation = normalize_validation(row.get("validation", "0"))
