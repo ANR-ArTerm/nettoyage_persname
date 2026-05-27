@@ -15,9 +15,10 @@ def _toggle_entry(idx):
 
 def render_entry_checkbox(idx):
     st.checkbox(
-        "",
+        f"Sélectionner la notice {idx}",
         value=idx in st.session_state.selected_entries,
         key=f"select_{idx}",
+        label_visibility="collapsed",
         on_change=_toggle_entry,
         args=(idx,)
     )
