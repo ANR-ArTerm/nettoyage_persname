@@ -1,5 +1,6 @@
 import streamlit as st
 from modules.data_loader import load_ref_lists
+from modules.validation import VERIF_LIST, normalize_validation
 
 def render_entry_editor(idx, row, conn, spreadsheet):
     with st.container():
@@ -56,22 +57,13 @@ def render_entry_editor(idx, row, conn, spreadsheet):
             key=f"commentaire_{idx}"
         )
 
-        VERIF_LIST = {
-            "0": "🔴 Notice non consultée",
-            "1": "👤 Nom vérifié",
-            "2": "✏️ Notice à revoir",
-            "3": "✅ Notice terminée"
-        }
+        validation = normalize_validation(row["validation"])
         
         verif = st.selectbox(
             "Vérification",
             options=list(VERIF_LIST.keys()),
             format_func=lambda x: VERIF_LIST[x],
-            index=(
-                list(VERIF_LIST.keys()).index(str(row["validation"]))
-                if str(row["validation"]) in VERIF_LIST
-                else 0
-            ),
+            index=list(VERIF_LIST.keys()).index(validation),
             key=f"verif_{idx}"
             )
         

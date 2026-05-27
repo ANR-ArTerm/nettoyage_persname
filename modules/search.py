@@ -4,6 +4,7 @@ from modules.entry_display import render_entry_display
 from modules.entry_editor import render_entry_editor
 from modules.pagination import paginate_dataframe, render_pagination
 from modules.bulk_actions import init_bulk_selection, render_bulk_actions_top, render_entry_checkbox
+from modules.validation import VERIF_LIST, normalize_validation_series
 
 def search_display(connection, spreadsheet):
     init_bulk_selection()          # 1. en tout début de fonctiondef search_display(connection, spreadsheet):
@@ -26,13 +27,6 @@ def search_display(connection, spreadsheet):
             st.session_state.df = load_data(connection, spreadsheet)
             st.session_state.editing = None
             st.rerun()
-
-    VERIF_LIST = {
-        "0": "🔴 Notice non consultée",
-        "1": "👤 Nom vérifié",
-        "2": "✏️ Notice à revoir",
-        "3": "✅ Notice terminée"
-    }
 
     SEARCH_COLUMNS = [
         "xml:id",
@@ -95,7 +89,7 @@ def search_display(connection, spreadsheet):
     # Validation
     if validation_filter != "Toutes":
         filtered_df = filtered_df[
-            filtered_df["validation"].fillna(0).astype(int).astype(str) == str(validation_filter)
+            normalize_validation_series(filtered_df["validation"]) == str(validation_filter)
         ]
 
     st.write(f"**{len(filtered_df)}** entrée(s)")

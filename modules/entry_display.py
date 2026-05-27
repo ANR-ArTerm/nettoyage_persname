@@ -1,12 +1,5 @@
 import streamlit as st
-
-
-VERIF_LIST = {
-    "0": "🔴 Notice non consultée",
-    "1": "👤 Nom vérifié",
-    "2": "✏️ Notice à revoir",
-    "3": "✅ Notice terminée"
-}
+from modules.validation import VERIF_LIST, normalize_validation
 
 def render_entry_display(idx, row):
     with st.container(border=True):
@@ -15,7 +8,7 @@ def render_entry_display(idx, row):
             st.markdown(f"#### XML:ID : **{row['xml:id']}**")
 
         with c_status:
-            validation = str(row.get("validation", "0"))
+            validation = normalize_validation(row.get("validation", "0"))
             st.markdown(
                 VERIF_LIST.get(validation, "🔴 Notice non consultée")
             )
