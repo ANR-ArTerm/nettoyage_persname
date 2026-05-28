@@ -62,7 +62,7 @@ def render_bulk_actions_top(connection, spreadsheet):
                         if bulk_types:
                             st.session_state.df.at[idx, "type"] = ",".join(bulk_types)
                         if bulk_verif is not None:
-                            st.session_state.df.at[idx, "verif"] = normalize_validation(bulk_verif)
+                            st.session_state.df.at[idx, "validation"] = normalize_validation(bulk_verif)
                     connection.update(spreadsheet=spreadsheet, data=st.session_state.df)
                     st.cache_data.clear()
                     for idx in st.session_state.selected_entries:
