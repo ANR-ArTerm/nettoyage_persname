@@ -79,6 +79,7 @@ def render_entry_editor(idx, row, conn, spreadsheet):
                     st.session_state.df.loc[idx, "role"]        = role
                     st.session_state.df.loc[idx, "commentaire"] = commentaire
                     st.session_state.df.loc[idx, "validation"]  = verif
+                    st.session_state.df.loc[idx, "compte"] = row["compte"]
                     
                     conn.update(spreadsheet=spreadsheet, data=st.session_state.df)
                     st.session_state.editing = None
