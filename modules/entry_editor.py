@@ -66,15 +66,26 @@ def render_entry_editor(idx, row, conn, spreadsheet):
         with btn_save:
             if st.button("💾 Sauvegarder", key=f"save_{idx}", use_container_width=True):
                 with st.spinner("Sauvegarde en cours"):
-                    st.session_state.df.loc[idx] = [
-                        xml_id, wikidata, name_alias, surname, forename, birth_date, birth_place,
-                        death_date, death_place, ",".join(type_personne), role, commentaire, verif
-                    ]
+                    st.session_state.df.loc[idx, "xml:id"]      = xml_id
+                    st.session_state.df.loc[idx, "wikidata"]    = wikidata
+                    st.session_state.df.loc[idx, "name_alias"]  = name_alias
+                    st.session_state.df.loc[idx, "surname"]     = surname
+                    st.session_state.df.loc[idx, "forename"]    = forename
+                    st.session_state.df.loc[idx, "birth_date"]  = birth_date
+                    st.session_state.df.loc[idx, "birth_place"] = birth_place
+                    st.session_state.df.loc[idx, "death_date"]  = death_date
+                    st.session_state.df.loc[idx, "death_place"] = death_place
+                    st.session_state.df.loc[idx, "type"]        = ",".join(type_personne)
+                    st.session_state.df.loc[idx, "role"]        = role
+                    st.session_state.df.loc[idx, "commentaire"] = commentaire
+                    st.session_state.df.loc[idx, "validation"]  = verif
+                    
                     conn.update(spreadsheet=spreadsheet, data=st.session_state.df)
                     st.session_state.editing = None
                     st.cache_data.clear()
                     st.success("Entrée mise à jour")
                     st.rerun()
+
 
         with btn_cancel:
             if st.button("✖ Annuler", key=f"cancel_{idx}", use_container_width=True):
