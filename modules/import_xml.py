@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 
+
 SPREADSHEET = "https://docs.google.com/spreadsheets/d/10XWqZyB0ADl5Fxu-3H6BGFd2Bgualee9A_0ZAo2nE5c/edit?gid=0#gid=0"
 
 REF_SHEETS = {
@@ -12,6 +13,14 @@ REF_SHEETS = {
 }
 
 ns = {"tei": "http://www.tei-c.org/ns/1.0"}
+
+
+# ======================================
+# Utilitaires
+# ======================================
+
+def is_empty(value):
+    return pd.isna(value) or str(value).strip() == ""
 
 
 # ======================================
@@ -44,19 +53,20 @@ def extract_tei_entities(uploaded_file, tag_name):
     return pd.DataFrame(rows)
 
 
-
 # ======================================
-# Merge sans écraser
+# Merge sans écraser les rôles existants
 # ======================================
-
-def is_empty(value):
-    return pd.isna(value) or str(value).strip() == ""
-
 
 def merge_new_and_fill_empty_roles(existing_df, new_df):
 
     existing_df = existing_df.copy()
     new_df = new_df.copy()
+
+    if "xml:id" not in existing_df.columns:
+        existing_df["xml:id"] = ""
+
+    if "wikidata" not in existing_df.columns:
+        existing_df["wikidata"] = ""
 
     if "role" not in existing_df.columns:
         existing_df["role"] = ""
@@ -65,12 +75,19 @@ def merge_new_and_fill_empty_roles(existing_df, new_df):
         new_df["role"] = ""
 
     existing_ids = set(
-        existing_df["xml:id"].astype(str)
+        existing_df["xml:id"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
     )
 
     df_to_add = new_df[
-        ~new_df["xml:id"].astype(str).isin(existing_ids)
-    ]
+        ~new_df["xml:id"]
+        .fillna("")
+        .astype(str)
+        .str.strip()
+        .isin(existing_ids)
+    ].copy()
 
     merged_df = pd.concat(
         [existing_df, df_to_add],
@@ -97,6 +114,7 @@ def merge_new_and_fill_empty_roles(existing_df, new_df):
     filled_count = 0
 
     for index, row in merged_df.iterrows():
+
         xml_id = str(row.get("xml:id", "") or "").strip()
         xml_role = roles_by_id.get(xml_id, "")
 
@@ -105,24 +123,6 @@ def merge_new_and_fill_empty_roles(existing_df, new_df):
             filled_count += 1
 
     return merged_df, len(df_to_add), df_to_add, filled_count
-
-
-def merge_only_new(existing_df, new_df):
-
-    existing_ids = set(
-        existing_df["xml:id"].astype(str)
-    )
-
-    df_to_add = new_df[
-        ~new_df["xml:id"].astype(str).isin(existing_ids)
-    ]
-
-    merged_df = pd.concat(
-        [existing_df, df_to_add],
-        ignore_index=True
-    )
-
-    return merged_df, len(df_to_add)
 
 
 # ======================================
@@ -163,27 +163,24 @@ def render_import_xml_persons_page():
                 ttl=0
             )
 
-            merged_df, added_count, df_to_add, filled_count = merge_new_and_fill_empty_roles(
-                existing_df,
-                new_df
+            merged_df, added_count, df_to_add, filled_count = (
+                merge_new_and_fill_empty_roles(
+                    existing_df,
+                    new_df
+                )
             )
-
-            existing_ids = set(
-                existing_df["xml:id"].astype(str)
-            )
-
-            df_to_add = new_df[
-                ~new_df["xml:id"].astype(str).isin(existing_ids)
-            ]
 
             st.success(
-                f"{added_count} nouvelles personnes détectées"
+                f"{added_count} nouvelles personnes détectées, "
+                f"{filled_count} rôles à compléter"
             )
 
-            st.dataframe(
-                df_to_add,
-                use_container_width=True
-            )
+            if added_count > 0:
+                st.subheader("Nouvelles personnes")
+                st.dataframe(
+                    df_to_add,
+                    use_container_width=True
+                )
 
             if st.button("Mettre à jour catalogue"):
 
@@ -194,7 +191,7 @@ def render_import_xml_persons_page():
                 )
 
                 st.success(
-                    f"{added_count} nouvelles personnes détectées, "
+                    f"{added_count} nouvelles personnes ajoutées, "
                     f"{filled_count} rôles complétés"
                 )
 
