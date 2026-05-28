@@ -37,7 +37,8 @@ def render_entry_display(idx, row):
 
         with c_meta:
             st.markdown(f"**{row['type'] or '—'}**")
-            st.markdown(f"{row['role'] or '—'}")
+        
+        st.markdown(f"Role (description) : {row['role'] or '—'}")
 
         with c_btn:
             if st.button("✏️ Éditer", key=f"edit_{idx}"):
