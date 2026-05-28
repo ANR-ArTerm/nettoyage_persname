@@ -43,16 +43,10 @@ def render_entry_editor(idx, row, conn, spreadsheet):
             birth_place = st.text_input("Lieu naissance", value=row["birth_place"], key=f"bp_{idx}")
             death_place = st.text_input("Lieu décès", value=row["death_place"], key=f"dp_{idx}")
 
-        role_list = [""] + st.session_state.ref_lists["roles"]
-        role = st.selectbox(
-                "Rôle",
-                options=role_list,
-                index=role_list.index(row["role"]) if row["role"] in role_list else 0,
-                key=f"role_{idx}"
-            )
+        role = st.text_area("Role (texte libre)", value=row["role"], key=f"role_{idx}")
 
         commentaire = st.text_area(
-            "Commentaire",
+            "Commentaire (caché sur le site, seulement pour nous)",
             value=row["commentaire"],
             key=f"commentaire_{idx}"
         )
