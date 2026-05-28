@@ -2,7 +2,6 @@ import math
 
 import streamlit as st
 
-
 def paginate_dataframe(df, page_size=25):
     total_entries = len(df)
     total_pages = max(1, math.ceil(total_entries / page_size))
@@ -23,7 +22,7 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
     shown_start = start + 1 if total_entries else 0
     shown_end = min(end, total_entries)
 
-    col_prev, col_info, col_next = st.columns([1, 2, 1])
+    col_prev, col_info, col_jump, col_next = st.columns([1, 2, 1, 1])
 
     with col_prev:
         if st.button(
@@ -44,6 +43,21 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
             f"</div>",
             unsafe_allow_html=True,
         )
+
+    with col_jump:
+        jumped = st.number_input(
+            "Aller à",
+            min_value=1,
+            max_value=total_pages,
+            value=current_page,
+            step=1,
+            key=f"{key_prefix}_jump",
+            label_visibility="collapsed",
+        )
+        if jumped != current_page:
+            st.session_state.page = jumped
+            st.session_state.editing = None
+            st.rerun()
 
     with col_next:
         if st.button(
