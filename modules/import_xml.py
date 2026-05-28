@@ -24,7 +24,6 @@ def extract_tei_entities(uploaded_file, tag_name):
     root = tree.getroot()
 
     rows = []
-
     xpath = f".//tei:{tag_name}"
 
     for element in root.findall(xpath, ns):
@@ -34,18 +33,61 @@ def extract_tei_entities(uploaded_file, tag_name):
         )
 
         source = element.get("source", "").strip()
+        role = element.get("role", "").strip()
 
         rows.append({
             "xml:id": xml_id,
-            "wikidata": source
+            "wikidata": source,
+            "role": role
         })
 
     return pd.DataFrame(rows)
 
 
+
 # ======================================
 # Merge sans écraser
 # ======================================
+
+def merge_new_and_fill_empty_roles(existing_df, new_df):
+
+    existing_df = existing_df.copy()
+    new_df = new_df.copy()
+
+    if "role" not in existing_df.columns:
+        existing_df["role"] = ""
+
+    existing_ids = set(existing_df["xml:id"].astype(str))
+
+    df_to_add = new_df[
+        ~new_df["xml:id"].astype(str).isin(existing_ids)
+    ]
+
+    merged_df = pd.concat(
+        [existing_df, df_to_add],
+        ignore_index=True
+    )
+
+    roles_by_id = (
+        new_df.dropna(subset=["xml:id"])
+        .set_index("xml:id")["role"]
+        .astype(str)
+        .to_dict()
+    )
+
+    filled_count = 0
+
+    for index, row in merged_df.iterrows():
+        current_role = str(row.get("role", "") or "").strip()
+        xml_id = str(row.get("xml:id", "") or "").strip()
+        xml_role = roles_by_id.get(xml_id, "").strip()
+
+        if not current_role and xml_role:
+            merged_df.at[index, "role"] = xml_role
+            filled_count += 1
+
+    return merged_df, len(df_to_add), df_to_add, filled_count
+
 
 def merge_only_new(existing_df, new_df):
 
@@ -103,7 +145,7 @@ def render_import_xml_persons_page():
                 ttl=0
             )
 
-            merged_df, added_count = merge_only_new(
+            merged_df, added_count, df_to_add, filled_count = merge_new_and_fill_empty_roles(
                 existing_df,
                 new_df
             )
@@ -134,9 +176,10 @@ def render_import_xml_persons_page():
                 )
 
                 st.success(
-                    f"{added_count} nouvelles personnes ajoutées"
+                    f"{added_count} nouvelles personnes détectées, "
+                    f"{filled_count} rôles complétés"
                 )
-        
+
         except Exception as e:
             st.error(f"Erreur : {e}")
 
