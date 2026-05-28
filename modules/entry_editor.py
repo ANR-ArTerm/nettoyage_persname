@@ -1,6 +1,7 @@
 import streamlit as st
 from modules.data_loader import load_ref_lists
-from modules.validation import VERIF_LIST, normalize_validation
+from modules.list_and_dics import VERIF_LIST
+from modules.validation import normalize_validation
 
 def render_entry_editor(idx, row, conn, spreadsheet):
     with st.container():
