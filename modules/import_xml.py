@@ -49,6 +49,10 @@ def extract_tei_entities(uploaded_file, tag_name):
 # Merge sans écraser
 # ======================================
 
+def is_empty(value):
+    return pd.isna(value) or str(value).strip() == ""
+
+
 def merge_new_and_fill_empty_roles(existing_df, new_df):
 
     existing_df = existing_df.copy()
@@ -57,7 +61,12 @@ def merge_new_and_fill_empty_roles(existing_df, new_df):
     if "role" not in existing_df.columns:
         existing_df["role"] = ""
 
-    existing_ids = set(existing_df["xml:id"].astype(str))
+    if "role" not in new_df.columns:
+        new_df["role"] = ""
+
+    existing_ids = set(
+        existing_df["xml:id"].astype(str)
+    )
 
     df_to_add = new_df[
         ~new_df["xml:id"].astype(str).isin(existing_ids)
@@ -69,20 +78,29 @@ def merge_new_and_fill_empty_roles(existing_df, new_df):
     )
 
     roles_by_id = (
-        new_df.dropna(subset=["xml:id"])
+        new_df[
+            new_df["xml:id"].notna()
+            & new_df["role"].notna()
+            & (new_df["role"].astype(str).str.strip() != "")
+        ]
+        .assign(
+            **{
+                "xml:id": lambda df: df["xml:id"].astype(str).str.strip(),
+                "role": lambda df: df["role"].astype(str).str.strip()
+            }
+        )
+        .drop_duplicates(subset=["xml:id"], keep="first")
         .set_index("xml:id")["role"]
-        .astype(str)
         .to_dict()
     )
 
     filled_count = 0
 
     for index, row in merged_df.iterrows():
-        current_role = str(row.get("role", "") or "").strip()
         xml_id = str(row.get("xml:id", "") or "").strip()
-        xml_role = roles_by_id.get(xml_id, "").strip()
+        xml_role = roles_by_id.get(xml_id, "")
 
-        if not current_role and xml_role:
+        if is_empty(row.get("role")) and xml_role:
             merged_df.at[index, "role"] = xml_role
             filled_count += 1
 
