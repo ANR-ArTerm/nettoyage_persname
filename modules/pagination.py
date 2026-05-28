@@ -22,7 +22,18 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
     shown_start = start + 1 if total_entries else 0
     shown_end = min(end, total_entries)
 
-    col_prev, col_info, col_jump, col_next = st.columns([1, 2, 1, 1])
+    col_first, col_prev, col_info, col_next, col_last = st.columns([1, 1, 2, 1, 1])
+
+    with col_first:
+        if st.button(
+            "⏮ Première",
+            disabled=current_page <= 1,
+            key=f"{key_prefix}_first",
+            use_container_width=True,
+        ):
+            st.session_state.page = 1
+            st.session_state.editing = None
+            st.rerun()
 
     with col_prev:
         if st.button(
@@ -44,21 +55,6 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
             unsafe_allow_html=True,
         )
 
-    with col_jump:
-        jumped = st.number_input(
-            "Aller à",
-            min_value=1,
-            max_value=total_pages,
-            value=current_page,
-            step=1,
-            key=f"{key_prefix}_jump",
-            label_visibility="collapsed",
-        )
-        if jumped != current_page:
-            st.session_state.page = jumped
-            st.session_state.editing = None
-            st.rerun()
-
     with col_next:
         if st.button(
             "Suivant →",
@@ -67,5 +63,16 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
             use_container_width=True,
         ):
             st.session_state.page += 1
+            st.session_state.editing = None
+            st.rerun()
+
+    with col_last:
+        if st.button(
+            "Dernière ⏭",
+            disabled=current_page >= total_pages,
+            key=f"{key_prefix}_last",
+            use_container_width=True,
+        ):
+            st.session_state.page = total_pages
             st.session_state.editing = None
             st.rerun()
