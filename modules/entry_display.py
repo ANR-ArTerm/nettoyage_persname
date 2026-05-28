@@ -12,6 +12,8 @@ def render_entry_display(idx, row):
             st.markdown(
                 VERIF_LIST.get(validation, "🔴 Notice non consultée")
             )
+        
+        st.markdown(f"QID Wikidata : **{row['wikidata']}**")
 
         c_main, c_dates, c_meta, c_btn = st.columns([3, 2, 2, 1])
 
