@@ -14,6 +14,13 @@ REF_SHEETS = {
 
 ns = {"tei": "http://www.tei-c.org/ns/1.0"}
 
+# Colonnes officielles du tableur — ordre conservé
+CATALOGUE_COLUMNS = [
+    "xml:id", "wikidata", "name_alias", "surname", "forename",
+    "birth_date", "birth_place", "death_date", "death_place",
+    "type", "role", "commentaire", "validation", "compte"
+]
+
 
 # ======================================
 # Utilitaires
@@ -44,17 +51,37 @@ def extract_tei_entities(uploaded_file, tag_name):
         source = element.get("source", "").strip()
         role = element.get("role", "").strip()
 
+        # Extraction forename et surname depuis persName
+        # (uniquement forename et surname, pas addName)
+        forename = ""
+        surname = ""
+
+        pers_name = element.find("tei:persName", ns)
+        if pers_name is not None:
+            forename_el = pers_name.find("tei:forename", ns)
+            surname_el  = pers_name.find("tei:surname", ns)
+            if forename_el is not None and forename_el.text:
+                forename = forename_el.text.strip()
+            if surname_el is not None and surname_el.text:
+                surname = surname_el.text.strip()
+
+        # Si forename == surname : on garde seulement surname, forename vide
+        if forename and surname and forename == surname:
+            forename = ""
+
         rows.append({
             "xml:id": xml_id,
             "wikidata": source,
-            "role": role
+            "role": role,
+            "forename": forename,
+            "surname": surname,
         })
 
     return pd.DataFrame(rows)
 
 
 # ======================================
-# Merge sans écraser les rôles existants
+# Merge sans écraser les champs existants
 # ======================================
 
 def merge_new_and_fill_empty_roles(existing_df, new_df):
@@ -62,17 +89,15 @@ def merge_new_and_fill_empty_roles(existing_df, new_df):
     existing_df = existing_df.copy()
     new_df = new_df.copy()
 
-    if "xml:id" not in existing_df.columns:
-        existing_df["xml:id"] = ""
+    # Garantir que toutes les colonnes du tableur existent dans les deux df
+    for col in CATALOGUE_COLUMNS:
+        if col not in existing_df.columns:
+            existing_df[col] = ""
+        if col not in new_df.columns:
+            new_df[col] = ""
 
-    if "wikidata" not in existing_df.columns:
-        existing_df["wikidata"] = ""
-
-    if "role" not in existing_df.columns:
-        existing_df["role"] = ""
-
-    if "role" not in new_df.columns:
-        new_df["role"] = ""
+    # Réduire new_df aux seules colonnes du tableur (ignorer colonnes XML inconnues)
+    new_df = new_df[[c for c in CATALOGUE_COLUMNS if c in new_df.columns]]
 
     existing_ids = set(
         existing_df["xml:id"]
@@ -94,35 +119,64 @@ def merge_new_and_fill_empty_roles(existing_df, new_df):
         ignore_index=True
     )
 
-    roles_by_id = (
-        new_df[
-            new_df["xml:id"].notna()
-            & new_df["role"].notna()
-            & (new_df["role"].astype(str).str.strip() != "")
-        ]
-        .assign(
-            **{
-                "xml:id": lambda df: df["xml:id"].astype(str).str.strip(),
-                "role": lambda df: df["role"].astype(str).str.strip()
-            }
-        )
-        .drop_duplicates(subset=["xml:id"], keep="first")
-        .set_index("xml:id")["role"]
-        .to_dict()
-    )
+    # S'assurer que l'ordre des colonnes est respecté après concat
+    for col in CATALOGUE_COLUMNS:
+        if col not in merged_df.columns:
+            merged_df[col] = ""
+    merged_df = merged_df[CATALOGUE_COLUMNS]
 
-    filled_count = 0
+    # Construire un index xml:id → valeur depuis le XML
+    def build_field_index(field):
+        return (
+            new_df[
+                new_df["xml:id"].notna()
+                & new_df[field].notna()
+                & (new_df[field].astype(str).str.strip() != "")
+            ]
+            .assign(
+                **{
+                    "xml:id": lambda df: df["xml:id"].astype(str).str.strip(),
+                    field: lambda df: df[field].astype(str).str.strip(),
+                }
+            )
+            .drop_duplicates(subset=["xml:id"], keep="first")
+            .set_index("xml:id")[field]
+            .to_dict()
+        )
+
+    roles_by_id     = build_field_index("role")
+    forenames_by_id = build_field_index("forename")
+    surnames_by_id  = build_field_index("surname")
+
+    filled_roles = 0
+    filled_names = 0
 
     for index, row in merged_df.iterrows():
 
+        # Ligne verrouillée si validation == 3
+        try:
+            if float(row.get("validation", 0) or 0) == 3.0:
+                continue
+        except (ValueError, TypeError):
+            pass
+
         xml_id = str(row.get("xml:id", "") or "").strip()
-        xml_role = roles_by_id.get(xml_id, "")
 
-        if is_empty(row.get("role")) and xml_role:
-            merged_df.at[index, "role"] = xml_role
-            filled_count += 1
+        # Rôle : remplir seulement si vide
+        if is_empty(row.get("role")) and roles_by_id.get(xml_id):
+            merged_df.at[index, "role"] = roles_by_id[xml_id]
+            filled_roles += 1
 
-    return merged_df, len(df_to_add), df_to_add, filled_count
+        # Noms : on ne touche que si surname ET forename sont tous les deux vides
+        if is_empty(row.get("surname")) and is_empty(row.get("forename")):
+            new_surname  = surnames_by_id.get(xml_id, "")
+            new_forename = forenames_by_id.get(xml_id, "")
+            if new_surname or new_forename:
+                merged_df.at[index, "surname"]  = new_surname
+                merged_df.at[index, "forename"] = new_forename
+                filled_names += 1
+
+    return merged_df, len(df_to_add), df_to_add, filled_roles, filled_names
 
 
 # ======================================
@@ -163,7 +217,7 @@ def render_import_xml_persons_page():
                 ttl=0
             )
 
-            merged_df, added_count, df_to_add, filled_count = (
+            merged_df, added_count, df_to_add, filled_roles, filled_names = (
                 merge_new_and_fill_empty_roles(
                     existing_df,
                     new_df
@@ -171,8 +225,9 @@ def render_import_xml_persons_page():
             )
 
             st.success(
-                f"{added_count} nouvelles personnes détectées, "
-                f"{filled_count} rôles à compléter"
+                f"{added_count} nouvelles personnes détectées — "
+                f"{filled_roles} rôles et "
+                f"{filled_names} paires nom/prénom à compléter"
             )
 
             if added_count > 0:
@@ -191,8 +246,9 @@ def render_import_xml_persons_page():
                 )
 
                 st.success(
-                    f"{added_count} nouvelles personnes ajoutées, "
-                    f"{filled_count} rôles complétés"
+                    f"{added_count} nouvelles personnes ajoutées — "
+                    f"{filled_roles} rôles et "
+                    f"{filled_names} paires nom/prénom complétées"
                 )
 
         except Exception as e:
