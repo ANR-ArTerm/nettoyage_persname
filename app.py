@@ -4,10 +4,12 @@ import pandas as pd
 from modules.data_loader import load_data, load_ref_lists
 from modules.entry_display import render_entry_display
 from modules.entry_editor import render_entry_editor
+from modules.import_csv import render_catalogue_importer
 from modules.import_xml import render_import_xml_places_page, render_import_xml_persons_page
 from modules.pagination import paginate_dataframe, render_pagination
 from modules.edit_list import render_ref_editor
 from modules.search import search_display
+from modules.align_placenames import render_replace_place_qids
 
 st.set_page_config(page_title="Catalogue Arterm", layout="wide")
 
@@ -34,7 +36,8 @@ if "last_search" not in st.session_state:
 page = st.sidebar.radio("Navigation", ["📋 Catalogue", 
                                        "📝 Listes de référence", 
                                        "Mise à jour des placename",
-                                       "Mise à jour avec l'index des personnes"
+                                       "Mise à jour avec l'index des personnes",
+                                       "Importer un csv :"
                                        ])
 
 st.sidebar.divider()
@@ -60,6 +63,10 @@ elif page == "📝 Listes de référence":
 
 elif page == "Mise à jour des placename":
     render_import_xml_places_page()
+    render_replace_place_qids(conn, SPREADSHEET)
 
 elif page == "Mise à jour avec l'index des personnes":
     render_import_xml_persons_page()
+
+elif page == "Importer un csv :":
+    render_catalogue_importer(conn, SPREADSHEET)

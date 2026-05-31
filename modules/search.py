@@ -50,9 +50,10 @@ def search_display(connection, spreadsheet):
     with st.expander("⚙️ Filtres avancés"):
 
         empty_column = st.selectbox(
-            "Afficher seulement les notices où cette colonne est vide",
+            "Trouver les colonnes vides :",
             SEARCH_COLUMNS,
             placeholder="choix du filtre",
+            help="Afficher seulement les notices où cette colonne est vide",
             index=None
         )
 
