@@ -65,7 +65,7 @@ def render_entry_editor(idx, row, conn, spreadsheet):
         btn_save, btn_cancel = st.columns(2)
 
         with btn_save:
-            if st.button("💾 Sauvegarder", key=f"save_{idx}", use_container_width=True):
+            if st.button("💾 Sauvegarder", key=f"save_{idx}", width='stretch'):
                 with st.spinner("Sauvegarde en cours"):
                     st.session_state.df.loc[idx, "xml:id"]      = xml_id
                     st.session_state.df.loc[idx, "wikidata"]    = wikidata
@@ -90,6 +90,6 @@ def render_entry_editor(idx, row, conn, spreadsheet):
 
 
         with btn_cancel:
-            if st.button("✖ Annuler", key=f"cancel_{idx}", use_container_width=True):
+            if st.button("✖ Annuler", key=f"cancel_{idx}", width='stretch'):
                 st.session_state.editing = None
                 st.rerun()

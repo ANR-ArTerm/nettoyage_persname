@@ -29,7 +29,7 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
             "⏮ Première",
             disabled=current_page <= 1,
             key=f"{key_prefix}_first",
-            use_container_width=True,
+            width='stretch',
         ):
             st.session_state.page = 1
             st.session_state.editing = None
@@ -40,7 +40,7 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
             "← Précédent",
             disabled=current_page <= 1,
             key=f"{key_prefix}_prev",
-            use_container_width=True,
+            width='stretch',
         ):
             st.session_state.page -= 1
             st.session_state.editing = None
@@ -60,7 +60,7 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
             "Suivant →",
             disabled=current_page >= total_pages,
             key=f"{key_prefix}_next",
-            use_container_width=True,
+            width='stretch',
         ):
             st.session_state.page += 1
             st.session_state.editing = None
@@ -71,7 +71,7 @@ def render_pagination(total_entries, total_pages, start, end, key_prefix):
             "Dernière ⏭",
             disabled=current_page >= total_pages,
             key=f"{key_prefix}_last",
-            use_container_width=True,
+            width='stretch',
         ):
             st.session_state.page = total_pages
             st.session_state.editing = None

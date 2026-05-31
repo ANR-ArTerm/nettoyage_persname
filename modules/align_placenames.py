@@ -130,7 +130,7 @@ def render_replace_place_qids(conn, spreadsheet):
         "les valeurs `birth_place` et `death_place` qui sont encore sous forme `Q####`."
     )
 
-    if st.button("Chercher les lieux remplaçables", use_container_width=True):
+    if st.button("Chercher les lieux remplaçables", width='stretch'):
         try:
             catalogue_df = conn.read(
                 spreadsheet=spreadsheet,
@@ -169,12 +169,12 @@ def render_replace_place_qids(conn, spreadsheet):
         )
 
         st.markdown("**Remplacements proposés**")
-        st.dataframe(summary_df, use_container_width=True, hide_index=True)
+        st.dataframe(summary_df, width='stretch', hide_index=True)
 
         with st.expander("Voir les lignes concernées"):
             st.dataframe(
                 pd.DataFrame(replacements).drop(columns=["index"]),
-                use_container_width=True,
+                width='stretch',
                 hide_index=True,
             )
 
@@ -191,7 +191,7 @@ def render_replace_place_qids(conn, spreadsheet):
 
 
         with st.expander("QID trouvés mais absents de REF_placeName"):
-            st.dataframe(unknown_df, use_container_width=True, hide_index=True)
+            st.dataframe(unknown_df, width='stretch', hide_index=True)
 
     if not replacements:
         return

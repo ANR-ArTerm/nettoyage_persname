@@ -42,7 +42,7 @@ page = st.sidebar.radio("Navigation", ["📋 Catalogue",
 
 st.sidebar.divider()
 
-if st.sidebar.button("🔄 Rafraîchir les données", use_container_width=True):
+if st.sidebar.button("🔄 Rafraîchir les données", width='stretch'):
     st.cache_data.clear()
     st.session_state.df = load_data(conn, SPREADSHEET)
     st.session_state.ref_lists = load_ref_lists(conn, SPREADSHEET)

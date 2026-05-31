@@ -22,7 +22,7 @@ def search_display(connection, spreadsheet):
         st.session_state.last_search = search
 
     with col_refresh:
-        if st.button("🔄 Rafraîchir", use_container_width=True):
+        if st.button("🔄 Rafraîchir", width='stretch'):
             st.cache_data.clear()
             st.session_state.df = load_data(connection, spreadsheet)
             st.session_state.editing = None

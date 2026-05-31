@@ -56,7 +56,7 @@ def render_bulk_actions_top(connection, spreadsheet):
 
         with col_apply:
             apply_disabled = not bulk_types and bulk_verif is None
-            if st.button("✅ Appliquer", use_container_width=True, disabled=apply_disabled):
+            if st.button("✅ Appliquer", width='stretch', disabled=apply_disabled):
                 with st.spinner("Sauvegarde en cours..."):
                     for idx in st.session_state.selected_entries:
                         if bulk_types:
@@ -74,7 +74,7 @@ def render_bulk_actions_top(connection, spreadsheet):
                     st.rerun()
 
         with col_clear:
-            if st.button("✖ Désélectionner tout", use_container_width=True):
+            if st.button("✖ Désélectionner tout", width='stretch'):
                 for idx in st.session_state.selected_entries:
                     key = f"select_{idx}"
                     if key in st.session_state:

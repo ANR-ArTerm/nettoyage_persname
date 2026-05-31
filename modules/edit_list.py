@@ -45,12 +45,12 @@ def render_ref_editor(conn, spreadsheet, ref_sheets):
 
     st.divider()
     new_item = st.text_input("➕ Nouvelle valeur", key=f"new_item_{selected_sheet}")
-    if st.button("Ajouter", use_container_width=True) and new_item.strip():
+    if st.button("Ajouter", width='stretch') and new_item.strip():
         items.append(new_item.strip())
         st.rerun()
 
     st.divider()
-    if st.button("💾 Sauvegarder", type="primary", use_container_width=True):
+    if st.button("💾 Sauvegarder", type="primary", width='stretch'):
         updated_df = pd.DataFrame({col_name: items})
         conn.update(spreadsheet=spreadsheet, worksheet=selected_sheet, data=updated_df)
         st.cache_data.clear()

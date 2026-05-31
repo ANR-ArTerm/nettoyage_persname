@@ -234,7 +234,7 @@ def render_import_xml_persons_page():
                 st.subheader("Nouvelles personnes")
                 st.dataframe(
                     df_to_add,
-                    use_container_width=True
+                    width='stretch'
                 )
 
             if st.button("Mettre à jour catalogue"):
@@ -288,7 +288,7 @@ def render_import_xml_places_page():
 
             st.dataframe(
                 df,
-                use_container_width=True
+                width='stretch'
             )
 
             if st.button("Envoyer vers REF_placeName"):

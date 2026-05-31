@@ -172,15 +172,15 @@ def render_catalogue_importer(conn, spreadsheet):
     with st.expander("Voir les différences"):
         if diff["added_ids"]:
             st.markdown("**Ajouts**")
-            st.dataframe(pd.DataFrame({"xml:id": diff["added_ids"]}), use_container_width=True)
+            st.dataframe(pd.DataFrame({"xml:id": diff["added_ids"]}), width='stretch')
 
         if diff["removed_ids"]:
             st.markdown("**Suppressions**")
-            st.dataframe(pd.DataFrame({"xml:id": diff["removed_ids"]}), use_container_width=True)
+            st.dataframe(pd.DataFrame({"xml:id": diff["removed_ids"]}), width='stretch')
 
         if diff["changed_rows"]:
             st.markdown("**Lignes modifiées**")
-            st.dataframe(pd.DataFrame(diff["changed_rows"]), use_container_width=True)
+            st.dataframe(pd.DataFrame(diff["changed_rows"]), width='stretch')
 
     has_changes = (
         diff["added_ids"]
