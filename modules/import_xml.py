@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 
-from app import SPREADSHEET, REF_SHEETS
+from config import SPREADSHEET, REF_SHEETS
 
 ns = {"tei": "http://www.tei-c.org/ns/1.0"}
 

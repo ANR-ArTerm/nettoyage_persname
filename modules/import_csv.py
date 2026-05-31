@@ -7,7 +7,7 @@ import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
 
-from modules.import_xml import SPREADSHEET
+from config import SPREADSHEET
 
 
 CATALOGUE_SHEET = "catalogue"

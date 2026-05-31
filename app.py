@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
+from config import REF_SHEETS, SPREADSHEET
 from modules.data_loader import load_data, load_ref_lists
 from modules.entry_display import render_entry_display
 from modules.entry_editor import render_entry_editor
@@ -12,12 +13,6 @@ from modules.search import search_display
 from modules.align_placenames import render_replace_place_qids
 
 st.set_page_config(page_title="Catalogue Arterm", layout="wide")
-
-SPREADSHEET = "https://docs.google.com/spreadsheets/d/10XWqZyB0ADl5Fxu-3H6BGFd2Bgualee9A_0ZAo2nE5c/edit?gid=0#gid=0"
-REF_SHEETS = {
-    "Types de personnes": "REF_types",
-    "PlaceName": "REF_placeName"
-}
 
 conn = st.connection("gsheets", type=GSheetsConnection)
 
